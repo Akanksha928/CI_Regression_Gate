@@ -1,0 +1,24 @@
+name: Quality Gate
+
+on: [push, pull_request]
+
+jobs:
+  regression-gate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Gate on regressed predictions (expect FAIL)
+        run: |
+          python submission/ci_gate.py --predictions regressed_predictions.jsonl && {
+            echo "ERROR: gate passed on regressed data"
+            exit 1
+          } || echo "Correctly detected regression"
+
+      - name: Gate on improved predictions (expect PASS)
+        run: python submission/ci_gate.py --predictions improved_predictions.jsonl
